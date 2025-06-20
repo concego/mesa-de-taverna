@@ -1,5 +1,5 @@
 body {
-    font-family: 'MedievalSharp', cursive;
+    font-family: 'Arial', 'Helvetica', sans-serif;
     background: url('https://i.imgur.com/5Y8z3Zx.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #333;
@@ -17,18 +17,70 @@ body {
     border-radius: 10px;
     max-width: 800px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-align: left;
+}
+
+.tavern-notice {
+    background: rgba(139, 0, 0, 0.8);
+    color: #fff;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #333;
+    border-radius: 5px;
     text-align: center;
+    font-family: 'MedievalSharp', cursive;
+    font-size: 1.1em;
 }
 
 h1 {
     font-size: 2.5em;
     color: #8b0000;
     margin-bottom: 10px;
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.5em;
+    color: #8b0000;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+h3 {
+    font-size: 1.2em;
+    color: #6b0000;
+    margin: 10px 0 5px;
 }
 
 .intro-text {
     font-size: 1.2em;
     margin-bottom: 20px;
+    text-align: center;
+}
+
+.gamification {
+    margin: 10px 0;
+    padding: 10px;
+    border: 2px solid #8b0000;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.tab {
+    padding: 10px 20px;
+    margin: 5px;
+    background: #8b0000;
+    color: #fff;
+    border: 2px solid #333;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Arial', sans-serif;
+    font-size: 1em;
+}
+
+.active-tab {
+    background: #b22222;
+    border-color: #ffd700;
 }
 
 .tutorial-link {
@@ -36,10 +88,11 @@ h1 {
     margin: 10px 0;
     padding: 10px 20px;
     background: #8b0000;
-    color: white;
+    color: #fff;
     text-decoration: none;
     border-radius: 5px;
     transition: background 0.3s;
+    text-align: center;
 }
 
 .tutorial-link:hover {
@@ -53,81 +106,127 @@ h1 {
     border-radius: 5px;
 }
 
-.dice-container, .card-container {
+.dice-container, .card-container, .coin-container {
     display: flex;
     justify-content: center;
     gap: 10px;
     margin: 10px 0;
+    flex-wrap: wrap;
 }
 
 .dice {
     width: 50px;
     height: 50px;
-    background: white;
+    background: #fff;
     border: 2px solid #333;
     border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: 'Arial', sans-serif;
     font-size: 1.5em;
-    transition: transform 0.3s;
+}
+
+.dice.d20 {
+    width: 60px;
+    height: 60px;
+    font-size: 1.8em;
 }
 
 .dice-roll {
-    animation: roll 0.5s ease-in-out;
+    animation: slide 0.5s ease-in-out;
 }
 
-@keyframes roll {
-    0% { transform: rotate(0deg); }
-    50% { transform: rotate(180deg); }
-    100% { transform: rotate(360deg); }
+@keyframes slide {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-10px); }
+    100% { transform: translateX(0); }
 }
 
 .card {
     width: 70px;
     height: 100px;
-    background: white;
+    background: #fff;
     border: 2px solid #333;
     border-radius: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1em;
+    font-family: 'Arial', sans-serif;
+    font-size: 0.9em;
     text-align: center;
-    transition: transform 0.3s;
+    padding: 5px;
 }
 
 .card-flip {
-    animation: flip 0.5s ease-in-out;
+    animation: slide-in 0.5s ease-in-out;
 }
 
-@keyframes flip {
-    0% { transform: rotateY(0deg); }
-    50% { transform: rotateY(90deg); }
-    100% { transform: rotateY(0deg); }
+@keyframes slide-in {
+    0% { transform: translateX(-100px); }
+    100% { transform: translateX(0); }
+}
+
+.coin {
+    width: 60px;
+    height: 60px;
+    background: #ffd700;
+    border: 2px solid #333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arial', sans-serif;
+    font-size: 1em;
+}
+
+.coin-flip {
+    animation: slide-in-out 0.5s ease-in-out;
+}
+
+@keyframes slide-in-out {
+    0% { transform: translateX(-100px); }
+    50% { transform: translateX(100px); }
+    100% { transform: translateX(0); }
 }
 
 button {
     padding: 10px 20px;
-    margin: 10px;
+    margin: 5px;
     background: #8b0000;
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-family: 'MedievalSharp', cursive;
-    transition: background 0.3s;
+    font-family: 'Arial', sans-serif;
+    font-size: 1em;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-    background: #6b0000;
+    background: #333;
+}
+
+button:disabled {
+    background: #666;
+    cursor: not-allowed;
 }
 
 select, input[type="number"] {
     padding: 5px;
     margin: 10px;
-    font-family: 'MedievalSharp', cursive;
+    font-family: 'Arial', sans-serif;
     font-size: 1em;
+    background: #fff;
+    border: 2px solid #333;
+    border-radius: 4px;
+}
+
+.blackjack-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
 }
 
 .credits {
@@ -140,7 +239,7 @@ select, input[type="number"] {
 .credits a {
     color: #8b0000;
     text-decoration: none;
-    transition: color 0.3s;
+    transition: all 0.3s;
 }
 
 .credits a:hover {
@@ -151,5 +250,36 @@ select, input[type="number"] {
 .partners {
     margin-top: 5px;
     font-size: 14px;
-    color: #444;
+    color: #333;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: rgba(255, 245, 224, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    text-align: center;
+    border: 2px solid #8b0000;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.modal-content li.unlocked {
+    color: #006400;
+    font-weight: bold;
 }
