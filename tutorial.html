@@ -3,73 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Tutorial - Mesa de Taverna</title>
+    <title id="page-title">Tutorial da Mesa de Taverna</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container" role="main" aria-labelledby="main-title">
         <h1 id="main-title">Tutorial da Mesa de Taverna</h1>
-        <p class="intro-text" id="intro-text" aria-describedby="tutorial-desc">Aventureiro, aprenda as regras dos jogos da taverna antes de desafiar a sorte!</p>
-        <a href="index.html" class="tutorial-link" id="back-link" aria-label="Voltar para a Mesa de Taverna">Voltar aos Jogos</a>
+        <p class="intro-text" aria-describedby="intro-desc">Aprenda as regras dos jogos da taverna, aventureiro, e prepare-se para desafiar a sorte!</p>
 
-        <section class="tutorial-section" aria-labelledby="tut1-title">
-            <h2 id="tut1-title">Rolar Dados</h2>
-            <p id="tut1-desc">Role dois dados de 6 lados e veja a soma total. Não há apostas, apenas a emoção de rolar!</p>
+        <!-- Gamificação -->
+        <section class="tutorial-section" aria-labelledby="gamification-tut-title">
+            <h2 id="gamification-tut-title">Gamificação</h2>
+            <p id="gamification-tut-desc">Ganhe moedas por vitórias (10 moedas) ou derrotas (2 moedas), desbloqueie conquistas como "Senhor dos Dados", e suba de nível como aventureiro, de "Forasteiro" a "Cavaleiro".</p>
         </section>
 
-        <section class="tutorial-section" aria-labelledby="tut2-title">
-            <h2 id="tut2-title">Maior ou Menor</h2>
-            <p id="tut2-desc">Escolha se a soma de dois dados será maior ou menor que 7. Se acertar, você vence!</p>
+        <!-- Jogos de Dados -->
+        <section class="tutorial-section" aria-labelledby="dados-tut-title">
+            <h2 id="dados-tut-title">Jogos de Dados</h2>
+            <article aria-labelledby="tut0-title">
+                <h3 id="tut0-title">Cara ou Coroa</h3>
+                <p id="tut0-desc">Escolha entre cara ou coroa e lance a moeda. Se acertar, você vence!</p>
+            </article>
+            <article aria-labelledby="tut2-title">
+                <h3 id="tut2-title">Maior ou Menor</h3>
+                <p id="tut2-desc">Escolha se a soma de dois dados será maior ou menor que 7. Se acertar, você vence!</p>
+            </article>
+            <article aria-labelledby="tut3-title">
+                <h3 id="tut3-title">Par ou Ímpar</h3>
+                <p id="tut3-desc">Aposte se a soma de dois dados será par ou ímpar. Teste sua intuição!</p>
+            </article>
+            <article aria-labelledby="tut4-title">
+                <h3 id="tut4-title">Aposta na Soma Exata</h3>
+                <p id="tut4-desc">Escolha um número de 2 a 12. Se a soma dos dois dados for exatamente esse número, você ganha!</p>
+            </article>
+            <article aria-labelledby="tut5-title">
+                <h3 id="tut5-title">Três ou Nada</h3>
+                <p id="tut5-desc">Role três dados. Se a soma for divisível por 3, você vence!</p>
+            </article>
         </section>
 
-        <section class="tutorial-section" aria-labelledby="tut3-title">
-            <h2 id="tut3-title">Par ou Ímpar</h2>
-            <p id="tut3-desc">Aposte se a soma de dois dados será par ou ímpar. Teste sua intuição!</p>
+        <!-- Jogos de Cartas -->
+        <section class="tutorial-section" aria-labelledby="cartas-tut-title">
+            <h2 id="cartas-tut-title">Jogos de Cartas</h2>
+            <article aria-labelledby="tut6-title">
+                <h3 id="tut6-title">Vinte e Um</h3>
+                <p id="tut6-desc">Receba duas cartas, somando seus valores (Ás = 1 ou 11, 2-10 = valor, Valete/Dama/Rei = 10). Use "Comprar" para mais cartas ou "Passar" para parar. Tente chegar a 21 sem ultrapassar, contra o mestre da taverna, que compra até atingir 17 ou mais.</p>
+            </article>
+            <article aria-labelledby="tut7-title">
+                <h3 id="tut7-title">Maior Carta</h3>
+                <p id="tut7-desc">Receba uma carta e compare com a do mestre. A maior carta vence (Ás=1, 2-10=valor, Valete=11, Dama=12, Rei=13).</p>
+            </article>
+            <article aria-labelledby="tut8-title">
+                <h3 id="tut8-title">Par Perfeito</h3>
+                <p id="tut8-desc">Receba duas cartas. Se forem do mesmo valor (ex.: dois 5), você ganha!</p>
+            </article>
+            <article aria-labelledby="tut9-title">
+                <h3 id="tut9-title">Soma 13</h3>
+                <p id="tut9-desc">Receba duas cartas e some seus valores (Ás=1, 2-10=valor, Valete/Dama/Rei=10). Se a soma for exatamente 13, você ganha!</p>
+            </article>
+            <article aria-labelledby="tut10-title">
+                <h3 id="tut10-title">Naipe Certo</h3>
+                <p id="tut10-desc">Escolha um naipe (Copas, Ouros, Espadas, Paus). Uma carta será revelada. Se o naipe for o escolhido, você vence!</p>
+            </article>
         </section>
 
-        <section class="tutorial-section" aria-labelledby="tut4-title">
-            <h2 id="tut4-title">Aposta na Soma Exata</h2>
-            <p id="tut4-desc">Escolha um número de 2 a 12. Se a soma dos dois dados for exatamente esse número, você ganha!</p>
+        <!-- Passatempos -->
+        <section class="tutorial-section" aria-labelledby="passatempos-tut-title">
+            <h2 id="passatempos-tut-title">Passatempos</h2>
+            <article aria-labelledby="tut1-title">
+                <h3 id="tut1-title">Rolar Dados</h3>
+                <p id="tut1-desc">Role dois dados de 6 lados e veja a soma total. Não há apostas, apenas a emoção de rolar!</p>
+            </article>
+            <article aria-labelledby="tut11-title">
+                <h3 id="tut11-title">Rolador de Dados</h3>
+                <p id="tut11-desc">Escolha entre dados d4, d6, d8, d10, d12, ou d20, selecione a quantidade (1 a 5), e role para ver os resultados e a soma!</p>
+            </article>
         </section>
 
-        <section class="tutorial-section" aria-labelledby="tut5-title">
-            <h2 id="tut5-title">Três ou Nada</h2>
-            <p id="tut5-desc">Role três dados. Se a soma for divisível por 3, você vence. Caso contrário, a taverna leva a melhor!</p>
-        </section>
+        <!-- Voltar -->
+        <a href="index.html" class="tutorial-link" aria-label="Voltar aos Jogos">Voltar aos Jogos</a>
 
-        <section class="tutorial-section" aria-labelledby="tut6-title">
-            <h2 id="tut6-title">Vinte e Um</h2>
-            <p id="tut6-desc">Receba duas cartas e some seus valores (Ás=1, 2-10=valor, Valete/Dama/Rei=10). Tente chegar a 21 sem ultrapassar, competindo contra o mestre da taverna.</p>
-        </section>
-
-        <section class="tutorial-section" aria-labelledby="tut7-title">
-            <h2 id="tut7-title">Maior Carta</h2>
-            <p id="tut7-desc">Receba uma carta e compare com a do mestre. A maior carta vence (Ás=1, 2-10=valor, Valete=11, Dama=12, Rei=13).</p>
-        </section>
-
-        <section class="tutorial-section" aria-labelledby="tut8-title">
-            <h2 id="tut8-title">Par Perfeito</h2>
-            <p id="tut8-desc">Receba duas cartas. Se forem do mesmo valor (ex.: dois 5), você vence!</p>
-        </section>
-
-        <section class="tutorial-section" aria-labelledby="tut9-title">
-            <h2 id="tut9-title">Soma 13</h2>
-            <p id="tut9-desc">Receba duas cartas e some seus valores (Ás=1, 2-10=valor, Valete/Dama/Rei=10). Se a soma for exatamente 13, você ganha!</p>
-        </section>
-
-        <section class="tutorial-section" aria-labelledby="tut10-title">
-            <h2 id="tut10-title">Naipe Certo</h2>
-            <p id="tut10-desc">Escolha um naipe (Copas, Ouros, Espadas, Paus). Uma carta será revelada. Se o naipe for o escolhido, você vence!</p>
-        </section>
-
-        <!-- Rodapé com créditos e canais parceiros -->
+        <!-- Rodapé -->
         <footer class="credits" role="contentinfo">
             <p>Desenvolvido pela equipe do canal <a href="https://youtube.com/@euconcegojogar?si=SX07WbvR0sDwzRzW" target="_blank" rel="noopener">Euconcegojogar</a>. Licenciado sob <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</p>
-            <p class="partners">Canais Parceiros: <a href="https://youtube.com/@3xbgamesbrasil?si=qomJ9ccKHmcBRx6V" target="_blank" rel="noopener">3xbgamesbrasil</a>, <a href="https://youtube.com/@audiogamesbrasil?si=Uk9OQFGHRzWDnI32" target="_blank" rel="noopener">audiogamesbrasil</a></p>
+            <p class="partners">Parceiros na promoção de acessibilidade e produção de conteúdo: <a href="https://youtube.com/@3xbgamesbrasil?si=qomJ9ccKHmcBRx6V" target="_blank" rel="noopener">3xbgamesbrasil</a>, <a href="https://youtube.com/@audiogamesbrasil?si=Uk9OQFGHRzWDnI32" target="_blank" rel="noopener">audiogamesbrasil</a></p>
         </footer>
     </div>
     <script src="languages.js"></script>
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTranslations();
+        });
+    </script>
 </body>
 </html>
