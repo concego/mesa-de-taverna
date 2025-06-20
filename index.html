@@ -9,147 +9,202 @@
 </head>
 <body>
     <div class="container" role="main" aria-labelledby="main-title">
+        <!-- Aviso Engraçado -->
+        <div class="tavern-notice" aria-live="polite">
+            <p id="tavern-notice-text">Nossos pedreiros são trolls bêbados, então esperem algumas instabilidades. No mais, protejam-se e tenham uma boa estadia!</p>
+        </div>
         <h1 id="main-title">Mesa de Taverna</h1>
         <p class="intro-text" aria-describedby="intro-desc">Bem-vindo à Mesa de Taverna, aventureiro! Desafie a sorte com dados e cartas em jogos de pura bravura!</p>
+        <!-- Gamificação -->
+        <div class="gamification" aria-live="polite">
+            <p id="coins-label">Moedas: <span id="coins">0</span> 🪙</p>
+            <p id="level-label">Nível: <span id="level">Forasteiro (0/100)</span></p>
+            <button onclick="showAchievements()" aria-label="Ver Conquistas">Ver Conquistas</button>
+            <div id="achievements-modal" class="modal" style="display: none;" role="dialog" aria-labelledby="achievements-title">
+                <div class="modal-content">
+                    <h2 id="achievements-title">Conquistas</h2>
+                    <ul id="achievements-list" aria-live="polite"></ul>
+                    <button onclick="closeAchievements()" aria-label="Fechar Conquistas">Fechar</button>
+                </div>
+            </div>
+        </div>
         <a href="tutorial.html" class="tutorial-link" aria-label="Ver Tutorial dos Jogos">Ver Tutorial dos Jogos</a>
 
+        <!-- Abas -->
+        <div role="tablist" aria-label="Categorias de jogos">
+            <button role="tab" aria-selected="true" id="tab-dados" onclick="switchTab('dados')" class="tab active-tab">Dados</button>
+            <button role="tab" aria-selected="false" id="tab-cartas" onclick="switchTab('cartas')" class="tab">Cartas</button>
+            <button role="tab" id="tab-passatempos" onclick="switchTab('passatempos')" class="tab">Passatempos</button>
+        </div>
+
         <!-- Jogos de Dados -->
-        <section class="game-section" aria-labelledby="game1-title">
-            <h2 id="game1-title">Jogo 1: Rolar Dados</h2>
-            <p id="game1-desc">Jogue dois dados e veja a soma, como os bardos contam suas façanhas!</p>
-            <div class="dice-container" aria-live="polite">
-                <div class="dice dice-roll" id="dice1" aria-label="Dado 1">1</div>
-                <div class="dice dice-roll" id="dice2" aria-label="Dado 2">1</div>
-            </div>
-            <p id="game1-sum-label">Soma: <span id="sum" aria-live="polite">2</span></p>
-            <button onclick="rollDice()" aria-label="Rolar os dados">Rolar Dados</button>
-        </section>
-
-        <section class="game-section" aria-labelledby="game2-title">
-            <h2 id="game2-title">Jogo 2: Maior ou Menor</h2>
-            <p id="game2-desc">Aposte se a soma dos dados será maior ou menor que 7.</p>
-            <div class="dice-container" aria-live="polite">
-                <div class="dice" id="dice2-1" aria-label="Dado 1">1</div>
-                <div class="dice" id="dice2-2" aria-label="Dado 2">1</div>
-            </div>
-            <p id="game2-sum-label">Soma: <span id="sum2" aria-live="polite">2</span></p>
-            <select id="bet" aria-label="Escolha maior ou menor">
-                <option value="maior">Maior que 7</option>
-                <option value="menor">Menor que 7</option>
-            </select>
-            <button onclick="playHigherLower()" aria-label="Jogar Maior ou Menor">Jogar</button>
-            <p id="game2-result" aria-live="polite"></p>
-        </section>
-
-        <section class="game-section" aria-labelledby="game3-title">
-            <h2 id="game3-title">Jogo 3: Par ou Ímpar</h2>
-            <p id="game3-desc">Aposte se a soma dos dados será par ou ímpar.</p>
-            <div class="dice-container" aria-live="polite">
-                <div class="dice" id="dice3-1" aria-label="Dado 1">1</div>
-                <div class="dice" id="dice3-2" aria-label="Dado 2">1</div>
-            </div>
-            <p id="game3-sum-label">Soma: <span id="sum3" aria-live="polite">2</span></p>
-            <select id="parity-bet" aria-label="Escolha par ou ímpar">
-                <option value="par">Par</option>
-                <option value="impar">Ímpar</option>
-            </select>
-            <button onclick="playOddEven()" aria-label="Jogar Par ou Ímpar">Jogar</button>
-            <p id="game3-result" aria-live="polite"></p>
-        </section>
-
-        <section class="game-section" aria-labelledby="game4-title">
-            <h2 id="game4-title">Jogo 4: Aposta na Soma Exata</h2>
-            <p id="game4-desc">Escolha a soma exata dos dois dados (2 a 12).</p>
-            <div class="dice-container" aria-live="polite">
-                <div class="dice" id="dice4-1" aria-label="Dado 1">1</div>
-                <div class="dice" id="dice4-2" aria-label="Dado 2">1</div>
-            </div>
-            <p id="game4-sum-label">Soma: <span id="sum4" aria-live="polite">2</span></p>
-            <input type="number" id="exact-sum-bet" min="2" max="12" aria-label="Aposte na soma exata (2 a 12)">
-            <button onclick="playExactSum()" aria-label="Jogar Aposta na Soma Exata">Jogar</button>
-            <p id="game4-result" aria-live="polite"></p>
-        </section>
-
-        <section class="game-section" aria-labelledby="game5-title">
-            <h2 id="game5-title">Jogo 5: Três ou Nada</h2>
-            <p id="game5-desc">Aposte se a soma de três dados será divisível por 3.</p>
-            <div class="dice-container" aria-live="polite">
-                <div class="dice" id="dice5-1" aria-label="Dado 1">1</div>
-                <div class="dice" id="dice5-2" aria-label="Dado 2">1</div>
-                <div class="dice" id="dice5-3" aria-label="Dado 3">1</div>
-            </div>
-            <p id="game5-sum-label">Soma: <span id="sum5" aria-live="polite">3</span></p>
-            <button onclick="playThreeOrNothing()" aria-label="Jogar Três ou Nada">Jogar</button>
-            <p id="game5-result" aria-live="polite"></p>
-        </section>
+        <div role="dados-panel" aria-labelledby="tab-dados" role="tabpanel">
+            <section class="game-section" aria-labelledby="game0-title" data-category="dados">
+                <h2 id="game0-title">Jogo 1: Cara ou Coroa</h2>
+                <p id="game0-desc">Aposte se a moeda será cara ou coroa.</p>
+                <div class="coin-container" aria-live="polite">
+                    <div class="coin" id="coin" aria-label="Moeda">?</div>
+                </div>
+                <select id="coin-bet" aria-label="Escolha cara ou coroa">
+                    <option value="cara">Cara</option>
+                    <option value="coroa">Coroa</option>
+                </select>
+                <button onclick="startCoinToss()" aria-label="Iniciar Cara ou Coroa">Iniciar</button>
+                <p id="game0-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game2-title" data-category="dados">
+                <h2 id="game2-title">Jogo 2: Maior ou Menor</h2>
+                <p id="game2-desc">Aposte se a soma dos dados será maior ou menor que 7.</p>
+                <div class="dice-container" aria-live="polite">
+                    <div class="dice" id="dice2-1" aria-label="Dado 1">?</div>
+                    <div class="dice" id="dice2-2" aria-label="Dado 2">?</div>
+                </div>
+                <p id="game2-sum-label">Soma: <span id="sum2" aria-live="polite">?</span></p>
+                <select id="bet" aria-label="Escolha maior ou menor">
+                    <option value="maior">Mais que 7</option>
+                    <option value="menor">Mestre que 7</option>
+                </select>
+                <button onclick="startHigherLower()" aria-label="Iniciar Maior ou Menor">Iniciar</button>
+                <p id="game2-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game3-title" data-category="dados">
+                <h2 id="game3-title">Jogo 3: Par ou Ímpar</h2>
+                <p id="game3-desc">Aposte se a soma dos dados será par ou ímpar.</p>
+                <div class="dice-container" aria-live="polite">
+                    <div class="dice" id="dice3-1" aria-label="Dado 1">?</div>
+                    <div class="dice" id="dice3-2" aria-label="Dado 2">?</div>
+                </div>
+                <p id="game3-sum-label">Soma: <span id="sum3" aria-live="polite">?</span></p>
+                <select id="parity-bet" aria-label="Escolha par ou ímpar">
+                    <option value="par">Par</option>
+                    <option value="impar">Ímpar</option>
+                </select>
+                <button onclick="startOddEven()" aria-label="Iniciar Par ou Ímpar">Iniciar</button>
+                <p id="game3-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game4-title" data-category="dados">
+                <h2 id="game4-title">Jogo 4: Aposta na Soma Exata</h2>
+                <p id="game4-desc">Escolha a soma exata dos dois dados (2 a 12).</p>
+                <div class="dice-container" aria-live="polite">
+                    <div class="dice" id="dice4-1" aria-label="Dado 1">?</div>
+                    <div class="dice" id="dice4-d2" aria-label="Dado 2">?</div>
+                </div>
+                <p id="game4-sum-label">Soma: <span id="sum4" aria-live="polite">?</span></p>
+                <input type="exact-sum-bet" id="number" min="2" max="12" aria-label="Aposte na soma exata">
+                <button onclick="startExactSum()" aria-label="Iniciar Aposta na Soma Exata">Iniciar</button>
+                <p id="game4-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game5-title" data-category="dados">
+                <h2 id="game5-title">Jogo 5: Três ou Nada</h2>
+                <p id="game5-desc">Aposte se a soma de três dados será divisível por 3.</p>
+                <div class="dice-container" aria-live="polite">
+                    <div class="dice" id="dice5-1" aria-label="Dado 1">?</div>
+                    <div class="dice" id="dice5-2" aria-label="Dado 2">?</div>
+                    <div class="dice" id="dice5-3" aria-label="Dado 3">?</div>
+                </div>
+                <p id="game5-sum-label">Soma: <span id="sum5" aria-live="polite">?</span></p>
+                <button onclick="startThreeOrNothing()" aria-label="Iniciar Três ou Nada">Iniciar</button>
+                <p id="game5-result" aria-live="assertive"></p>
+            </section>
+        </div>
 
         <!-- Jogos de Cartas -->
-        <section class="game-section" aria-labelledby="game6-title">
-            <h2 id="game6-title">Jogo 6: Vinte e Um</h2>
-            <p id="game6-desc">Tente chegar a 21 sem ultrapassar, contra o mestre da taverna.</p>
-            <div class="card-container" aria-live="polite">
-                <div class="card" id="player-card" aria-label="Carta do jogador">Ás de Copas</div>
-                <div class="card" id="dealer-card" aria-label="Carta do mestre">Ás de Copas</div>
-            </div>
-            <p id="game6-score-label">Pontuação: <span id="score" aria-live="polite">2</span></p>
-            <button onclick="playBlackjack()" aria-label="Jogar Vinte e Um">Jogar</button>
-            <p id="game6-result" aria-live="polite"></p>
-        </section>
+        <div role="tabpanel" id="cartas-panel" aria-labelledby="tab-cartas" style="display: none;">
+            <section class="game-section" aria-labelledby="game6-title" data-category="card">
+                <h2 id="game6-title">Jogo 6: Vinte e Um</h2>
+                <p id="game6-desc">Tente chegar a 21 sem ultrapassar, contra o mestre da taverna.</p>
+                <div class="card-container" id="player-cards" aria-live="assertive" aria-label="Cartas do jogador"></div>
+                <div class="card-container" id="dealer-cards" aria-live="assertive" aria-label="Cartas do mestre"></div>
+                <p id="game6-score-label">Pontuação: <span id="score" aria-live="assertive">?</span></p>
+                <div class="blackjack-controls">
+                    <button id="blackjack-start" onclick="startBlackjack()" aria-label="Iniciar Vinte e Um">Iniciar</button>
+                    <button id="blackjack-hit" onclick="hit()" aria-label="Comprar Carta" disabled style="display: none;">Comprar</button>
+                    <button id="blackjack-stand" onclick="stand()" aria-label="Passar Vez" disabled style="display: none;">Passar</button>
+                </div>
+                <p id="game6-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game7-title" data-category="card">
+                <h2 id="game7-title">Jogo 7: Maior Carta</h2>
+                <p id="game7-desc">Compare sua carta com a do mestre (Ás a Rei).</p>
+                <div class="card-container" aria-live="polite">
+                    <div class="card" id="player-card" aria-label="Carta do jogador">?</div>
+                    <div class="card" id="dealer-card2" aria-label="Carta do mestre">?</div>
+                </div>
+                <button onclick="startHigherCard()" aria-label="Iniciar Maior Carta">Iniciar</button>
+                <p id="game7-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game8-title" data-category="card">
+                <h2 id="game8-title">Jogo 8: Par Perfeito</h2>
+                <p id="game8-desc">Aposte se duas cartas formarão um par.</p>
+                <div class="card-container" aria-live="polite">
+                    <div class="card" id="card8-1" aria-label="Primeira carta">?</div>
+                    <div class="card" id="card8-2" aria-label="Segunda carta">?</div>
+                </div>
+                <button onclick="startPerfectPair()" aria-label="Iniciar Par Perfeito">Iniciar</button>
+                <p id="game8-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game9-title" data-category="card">
+                <h2 id="game9-title">Jogo 9: Soma 13</h2>
+                <p id="game9-desc">Tente somar exatamente 13 com duas cartas.</p>
+                <div class="card-container" aria-live="polite">
+                    <div class="card" id="card9-1" aria-label="Primeira carta">?</div>
+                    <div class="card" id="card9-2" aria-label="Segunda carta">?</div>
+                </div>
+                <p id="game9-sum-label">Soma: <span id="sum9" aria-live="polite">?</span></p>
+                <button onclick="startSum13()" aria-label="Iniciar Soma 13">Iniciar</button>
+                <p id="game9-result" aria-live="assertive"></p>
+            </section>
+            <section class="game-section" aria-labelledby="game10-title" data-category="card">
+                <h2 id="game10-title">Jogo 10: Naipe Certo</h2>
+                <p id="game10-desc">Adivinhe o naipe de uma carta.</p>
+                <div class="card-container" aria-live="polite">
+                    <div class="card" id="card10" aria-label="Carta">?</div>
+                </div>
+                <select id="suit-bet" aria-label="Escolha o naipe">
+                    <option value="copas">Copas</option>
+                    <option value="ouros">Ouros</option>
+                    <option value="espadas">Espadas</option>
+                    <option value="paus">Paus</option>
+                </select>
+                <button onclick="startSuitGuess()" aria-label="Iniciar Naipe Certo">Iniciar</button>
+                <p id="game10-result" aria-live="assertive"></p>
+            </section>
+        </div>
 
-        <section class="game-section" aria-labelledby="game7-title">
-            <h2 id="game7-title">Jogo 7: Maior Carta</h2>
-            <p id="game7-desc">Compare sua carta com a do mestre (Ás a Rei).</p>
-            <div class="card-container" aria-live="polite">
-                <div class="card" id="player-card2" aria-label="Carta do jogador">Ás de Copas</div>
-                <div class="card" id="dealer-card2" aria-label="Carta do mestre">Ás de Copas</div>
-            </div>
-            <button onclick="playHigherCard()" aria-label="Jogar Maior Carta">Jogar</button>
-            <p id="game7-result" aria-live="polite"></p>
-        </section>
+        <!-- Passatempos -->
+        <div role="tabpanel" id="passatempos-panel" aria-labelledby="tab-passatempos" style="display: none;">
+            <section class="game-section" aria-labelledby="game1-title" data-category="passatempos">
+                <h2 id="game1-title">Jogo 1: Rolar Dados</h2>
+                <p id="game1-desc">Jogue dois dados e veja a soma, como os bardos contam suas façanhas!</p>
+                <div class="dice-container" aria-live="polite">
+                    <div class="dice" id="dice1" aria-label="Dado 1">?</div>
+                    <div class="dice" id="dice2" aria-label="Dado 2">?</div>
+                </div>
+                <p id="game1-sum-label">Soma: <span id="sum" aria-live="polite">?</span></p>
+                <button onclick="startRollDice()" aria-label="Iniciar Rolar Dados">Iniciar</button>
+            </section>
+            <section class="game-section" aria-labelledby="game11-title" data-category="passatempos">
+                <h2 id="game11-title">Jogo 2: Rolador de Dados</h2>
+                <p id="game11-desc">Escolha o tipo e a quantidade de dados e role-os como um verdadeiro aventureiro!</p>
+                <select id="dice-type" aria-label="Escolha o tipo de dado">
+                    <option value="d4">d4</option>
+                    <option value="d6">d6</option>
+                    <option value="d8">d8</option>
+                    <option value="d10">d10</option>
+                    <option value="d12">d12</option>
+                    <option value="d20">d20</option>
+                </select>
+                <input type="number" id="dice-quantity" min="1" max="5" value="1" aria-label="Quantidade de dados (1 a 5)">
+                <button onclick="startRollCustomDice()" aria-label="Iniciar Rolador de Dados">Iniciar</button>
+                <div class="dice-container" aria-live="polite" id="custom-dice-container"></div>
+                <p id="game11-sum-label">Soma: <span id="sum11" aria-live="polite">?</span></p>
+            </section>
+        </div>
 
-        <section class="game-section" aria-labelledby="game8-title">
-            <h2 id="game8-title">Jogo 8: Par Perfeito</h2>
-            <p id="game8-desc">Aposte se duas cartas formarão um par.</p>
-            <div class="card-container" aria-live="polite">
-                <div class="card" id="card8-1" aria-label="Primeira carta">Ás de Copas</div>
-                <div class="card" id="card8-2" aria-label="Segunda carta">Ás de Copas</div>
-            </div>
-            <button onclick="playPerfectPair()" aria-label="Jogar Par Perfeito">Jogar</button>
-            <p id="game8-result" aria-live="polite"></p>
-        </section>
-
-        <section class="game-section" aria-labelledby="game9-title">
-            <h2 id="game9-title">Jogo 9: Soma 13</h2>
-            <p id="game9-desc">Tente somar exatamente 13 com duas cartas.</p>
-            <div class="card-container" aria-live="polite">
-                <div class="card" id="card9-1" aria-label="Primeira carta">Ás de Copas</div>
-                <div class="card" id="card9-2" aria-label="Segunda carta">Ás de Copas</div>
-            </div>
-            <p id="game9-sum-label">Soma: <span id="sum9" aria-live="polite">2</span></p>
-            <button onclick="playSum13()" aria-label="Jogar Soma 13">Jogar</button>
-            <p id="game9-result" aria-live="polite"></p>
-        </section>
-
-        <section class="game-section" aria-labelledby="game10-title">
-            <h2 id="game10-title">Jogo 10: Naipe Certo</h2>
-            <p id="game10-desc">Adivinhe o naipe de uma carta.</p>
-            <div class="card-container" aria-live="polite">
-                <div class="card" id="card10" aria-label="Carta">Ás de Copas</div>
-            </div>
-            <select id="suit-bet" aria-label="Escolha o naipe">
-                <option value="copas">Copas</option>
-                <option value="ouros">Ouros</option>
-                <option value="espadas">Espadas</option>
-                <option value="paus">Paus</option>
-            </select>
-            <button onclick="playSuitGuess()" aria-label="Jogar Naipe Certo">Jogar</button>
-            <p id="game10-result" aria-live="polite"></p>
-        </section>
-
-        <!-- Rodapé com créditos e canais parceiros -->
+        <!-- Rodapé -->
         <footer class="credits" role="contentinfo">
             <p>Desenvolvido pela equipe do canal <a href="https://youtube.com/@euconcegojogar?si=SX07WbvR0sDwzRzW" target="_blank" rel="noopener">Euconcegojogar</a>. Licenciado sob <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>.</p>
-            <p class="partners">Canais Parceiros: <a href="https://youtube.com/@3xbgamesbrasil?si=qomJ9ccKHmcBRx6V" target="_blank" rel="noopener">3xbgamesbrasil</a>, <a href="https://youtube.com/@audiogamesbrasil?si=Uk9OQFGHRzWDnI32" target="_blank" rel="noopener">audiogamesbrasil</a></p>
+            <p class="partners">Parceiros na promoção de acessibilidade e produção de conteúdo: <a href="https://youtube.com/@3xbgamesbrasil?si=qomJ9ccKHmcBRx6V" target="_blank" rel="noopener">3xbgamesbrasil</a>, <a href="https://youtube.com/@audiogamesbrasil?si=Uk9OQFGHRzWDnI32" target="_blank" rel="noopener">audiogamesbrasil</a></p>
         </footer>
     </div>
     <script src="languages.js"></script>
