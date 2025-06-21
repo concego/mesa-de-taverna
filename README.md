@@ -18,3 +18,5 @@ A Mesa de Taverna é uma aplicação web que simula jogos de taverna, como Cara 
 - **Animações**: Efeitos visuais para rolagem de dados (`dice-roll`), virada de cartas (`card-flip`) e moedas (`coin-flip`).
 
 ## Estrutura do Projeto
+
+**Acompanhando Atualizações**: Consulte o arquivo [CHANGELOG.md](CHANGELOG.md) para ver as últimas mudanças, novas funcionalidades e correções de bugs.
