@@ -1,4 +1,44 @@
-// Aviso Engraçado
+// == Utilitários ==
+/**
+ * Obtém elemento DOM com segurança, retornando null se não encontrado.
+ * @param {string} id - ID do elemento.
+ * @returns {HTMLElement|null} Elemento DOM ou null.
+ */
+function getElementSafe(id) {
+    return document.getElementById(id);
+}
+
+/**
+ * Remove classe de animação após um tempo.
+ * @param {HTMLElement} element - Elemento DOM.
+ * @param {string} animationClass - Classe de animação (ex.: 'dice-roll').
+ */
+function removeAnimation(element, animationClass) {
+    if (element) {
+        element.classList.add(animationClass);
+        setTimeout(() => element.classList.remove(animationClass), 500);
+    }
+}
+
+/**
+ * Traduz chave de texto com fallback.
+ * @param {string} key - Chave de tradução.
+ * @returns {string} Texto traduzido ou chave original.
+ */
+function translate(key) {
+    return window.translate?.(key) || key; // Fallback se languages.js não carregar
+}
+
+/**
+ * Rola um dado com número de lados especificado.
+ * @param {number} [sides=6] - Número de lados do dado.
+ * @returns {number} Resultado do rolamento.
+ */
+function rollDie(sides = 6) {
+    return Math.floor(Math.random() * sides) + 1;
+}
+
+// == Avisos da Taverna ==
 const tavernNotices = [
     'Nossos pedreiros são trolls bêbados, então esperem algumas instabilidades. No mais, protejam-se e tenham uma boa estadia!',
     'A taverna está em obras! Goblins construtores deixaram martelos por aí, então cuidado com bugs e divirtam-se!',
@@ -9,133 +49,274 @@ const tavernNotices = [
     'Nossos elfos arquitetos estão de ressaca. A taverna pode ter buracos, mas as moedas estão seguras!'
 ];
 
+/**
+ * Define um aviso aleatório no rodapé.
+ */
 function setRandomNotice() {
     const noticeIndex = Math.floor(Math.random() * tavernNotices.length);
-    const noticeElement = document.getElementById('tavern-notice-text');
+    const noticeElement = getElementSafe('tavern-notice-text');
     if (noticeElement) {
         noticeElement.textContent = tavernNotices[noticeIndex];
         noticeElement.dataset.noticeIndex = noticeIndex;
     }
 }
 
-// Gamificação
-let coins = parseInt(localStorage.getItem('tavern-coins') || 0);
-let reputation = parseInt(localStorage.getItem('tavern-reputation') || 0);
-let level = Math.floor(reputation / 10) + 1;
+// == Gamificação ==
+const state = {
+    coins: parseInt(localStorage.getItem('tavern-coins')) || 0,
+    reputation: parseInt(localStorage.getItem('tavern-reputation')) || 0,
+    level: 1,
+    unlockedAchievements: JSON.parse(localStorage.getItem('tavern-achievements')) || []
+};
+
 const titles = ['Forasteiro', 'Viajante', 'Mercenário', 'Aventureiro', 'Cavaleiro', 'Senhor', 'Mestre'];
+
 const achievementsList = [
-    { id: 'play-all', name: 'Aprendiz da Taverna', desc: 'Jogue todos os jogos pelo menos uma vez', condition: () => new Set(Object.keys(localStorage).filter(k => k.startsWith('game-result'))).size >= 10, reward: 50 },
-    { id: 'dice-lord', name: 'Senhor dos Dados', desc: 'Ganhe 20 vezes em jogos de dados', condition: () => ['0', '2', '3', '4', '5'].reduce((sum, id) => sum + (JSON.parse(localStorage.getItem(`game-result-${id}`))?.wins || 0), 0) >= 20, reward: 100 },
-    { id: 'blackjack-5', name: 'Rei do Vinte e Um', desc: 'Ganhe 5 vezes em Vinte e Um', condition: () => (JSON.parse(localStorage.getItem('game-result-6'))?.wins || 0) >= 5, reward: 75 },
-    { id: 'coin-master', name: 'Mestre da Moeda', desc: 'Ganhe 10 vezes em Cara ou Coroa', condition: () => (JSON.parse(localStorage.getItem('game-result-0'))?.wins || 0) >= 10, reward: 50 },
-    { id: 'higher-lower-5', name: 'Profeta dos Dados', desc: 'Ganhe 5 vezes em Maior ou Menor', condition: () => (JSON.parse(localStorage.getItem('game-result-2'))?.wins || 0) >= 5, reward: 50 },
-    { id: 'perfect-pair-3', name: 'Mestre dos Pares', desc: 'Ganhe 3 vezes em Par Perfeito', condition: () => (JSON.parse(localStorage.getItem('game-result-8'))?.wins || 0) >= 3, reward: 50 },
+    {
+        id: 'play-all',
+        name: 'Aprendiz da Taverna',
+        desc: 'Jogue todos os jogos pelo menos uma vez',
+        condition: () => new Set(Object.keys(localStorage).filter(k => k.startsWith('game-result'))).size >= 10,
+        reward: 50
+    },
+    {
+        id: 'dice-lord',
+        name: 'Senhor dos Dados',
+        desc: 'Ganhe 20 vezes em jogos de dados',
+        condition: () => ['0', '2', '3', '4', '5'].reduce((sum, id) => sum + (getGameResult(id)?.wins || 0), 0) >= 20,
+        reward: 100
+    },
+    {
+        id: 'blackjack-5',
+        name: 'Rei do Vinte e Um',
+        desc: 'Ganhe 5 vezes em Vinte e Um',
+        condition: () => (getGameResult('6')?.wins || 0) >= 5,
+        reward: 75
+    },
+    {
+        id: 'coin-master',
+        name: 'Mestre da Moeda',
+        desc: 'Ganhe 10 vezes em Cara ou Coroa',
+        condition: () => (getGameResult('0')?.wins || 0) >= 10,
+        reward: 50
+    },
+    {
+        id: 'higher-lower-5',
+        name: 'Profeta dos Dados',
+        desc: 'Ganhe 5 vezes em Maior ou Menor',
+        condition: () => (getGameResult('2')?.wins || 0) >= 5,
+        reward: 50
+    },
+    {
+        id: 'perfect-pair-3',
+        name: 'Mestre dos Pares',
+        desc: 'Ganhe 3 vezes em Par Perfeito',
+        condition: () => (getGameResult('8')?.wins || 0) >= 3,
+        reward: 50
+    }
 ];
 
-let unlockedAchievements = JSON.parse(localStorage.getItem('tavern-achievements')) || [];
+/**
+ * Obtém resultados de um jogo do localStorage com tratamento de erro.
+ * @param {string} gameId - ID do jogo.
+ * @returns {Object|null} Resultados do jogo ou null se inválido.
+ */
+function getGameResult(gameId) {
+    try {
+        return JSON.parse(localStorage.getItem(`game-result-${gameId}`)) || { wins: 0, losses: 0 };
+    } catch {
+        return null;
+    }
+}
 
+/**
+ * Salva resultado de um jogo.
+ * @param {string} gameId - ID do jogo.
+ * @param {boolean} won - Indica se o jogador venceu.
+ */
+function saveResult(gameId, won) {
+    const key = `game-result-${gameId}`;
+    const results = getGameResult(gameId) || { wins: 0, losses: 0 };
+    if (won) results.wins++;
+    else results.losses++;
+    localStorage.setItem(key, JSON.stringify(results));
+    awardCoins(won ? 10 : 2, won);
+}
+
+/**
+ * Adiciona moedas e atualiza reputação.
+ * @param {number} amount - Quantidade de moedas.
+ * @param {boolean} isWin - Indica se é uma vitória.
+ */
 function awardCoins(amount, isWin) {
-    coins += amount;
-    localStorage.setItem('tavern-coins', coins);
-    document.getElementById('coins').textContent = coins;
+    state.coins += amount;
+    localStorage.setItem('tavern-coins', state.coins);
+    const coinsElement = getElementSafe('coins');
+    if (coinsElement) coinsElement.textContent = state.coins;
     updateReputation(isWin ? 10 : 2);
 }
 
+/**
+ * Atualiza reputação e nível.
+ * @param {number} amount - Quantidade de reputação.
+ */
 function updateReputation(amount) {
-    reputation += amount;
-    level = Math.floor(reputation / 10);
-    localStorage.setItem('tavern-reputation', reputation);
-    document.getElementById('level').textContent = `${translate(titles[Math.min(level - 1, titles.length - 1)])} (${reputation % 10} / 100)`;
+    state.reputation += amount;
+    state.level = Math.floor(state.reputation / 100) + 1;
+    localStorage.setItem('tavern-reputation', state.reputation);
+    const levelElement = getElementSafe('level');
+    if (levelElement) {
+        levelElement.textContent = `${translate(titles[Math.min(state.level - 1, titles.length - 1)])} (${state.reputation % 100}/100)`;
+    }
     checkAchievements();
 }
 
+/**
+ * Verifica e desbloqueia conquistas.
+ */
 function checkAchievements() {
     achievementsList.forEach(ach => {
-        if (!unlockedAchievements.includes(ach.id) && ach.condition()) {
-            unlockedAchievements.push(ach.id);
-            localStorage.setItem('tavern-achievements', JSON.stringify(unlockedAchievements));
+        if (!state.unlockedAchievements.includes(ach.id) && ach.condition()) {
+            state.unlockedAchievements.push(ach.id);
+            localStorage.setItem('tavern-achievements', JSON.stringify(state.unlockedAchievements));
             awardCoins(ach.reward);
-            alert(`Conquista desbloqueada: ${ach.name}! +${ach.reward} moedas`);
+            alert(`Conquista desbloqueada: ${translate(ach.name)}! +${ach.reward} ${translate('moedas')}`);
         }
     });
     updateAchievementsList();
 }
 
+/**
+ * Exibe modal de conquistas.
+ */
 function showAchievements() {
-    document.getElementById('achievements-modal').style.display = 'flex';
+    const modal = getElementSafe('achievements-modal');
+    if (modal) modal.style.display = 'flex';
     updateAchievementsList();
 }
 
+/**
+ * Atualiza lista de conquistas no modal.
+ */
 function updateAchievementsList() {
-    const list = document.getElementById('achievements-list');
+    const list = getElementSafe('achievements-list');
     if (list) {
-        list.innerHTML = achievementsList.map(ach => `<li ${unlockedAchievements.includes(ach.id) ? 'class="unlocked" aria-label="Conquista desbloqueada"' : ''}>${translate(ach.name)}: ${translate(ach.desc)} (${ach.reward} ${translate('moedas')})</li>`).join('');
+        list.innerHTML = achievementsList.map(ach => `
+            <li ${state.unlockedAchievements.includes(ach.id) ? 'class="unlocked" aria-label="Conquista desbloqueada"' : ''}>
+                ${translate(ach.name)}: ${translate(ach.desc)} (${ach.reward} ${translate('moedas')})
+            </li>
+        `).join('');
     }
 }
 
+/**
+ * Fecha modal de conquistas.
+ */
 function closeAchievements() {
-    document.getElementById('achievements-tmodal').style.display = 'none';
+    const modal = getElementSafe('achievements-modal');
+    if (modal) modal.style.display = 'none';
 }
 
-// Jogo de abas
+// == Interface ==
+/**
+ * Alterna entre abas de jogos.
+ * @param {string} category - Categoria da aba (dados, cartas, passatempos).
+ */
 function switchTab(category) {
     document.querySelectorAll('[role="tabpanel"]').forEach(panel => panel.style.display = 'none');
-    document.querySelectorAll('[role="tab"]').forEach(tab => tab.setAttribute('aria-selected', 'false'));
-    document.querySelectorAll('.tab-t').forEach(tab => tab.classList.remove('active-tab'));
-    document.getElementById(`${category}-panel`).style.display = 'block';
-    document.getElementById(`tab-${category}${category}`)`).setAttribute('aria-selected', 'true');
-    document.getElementById(`tab-t${category}`).classList.add('active-tab'));
+    document.querySelectorAll('[role="tab"]').forEach(tab => {
+        tab.setAttribute('aria-selected', 'false');
+        tab.classList.remove('active-tab');
+    });
+    const panel = getElementSafe(`${category}-panel`);
+    if (panel) panel.style.display = 'block';
+    const tab = getElementSafe(`tab-${category}`);
+    if (tab) {
+        tab.setAttribute('aria-selected', 'true');
+        tab.classList.add('active-tab');
+    }
     resetGames();
 }
 
-// Função para desativar botão durante animação
+/**
+ * Desativa botões durante animações e reativa após 500ms.
+ * @param {string} categoryId - ID da categoria (dados, cartas, passatempos).
+ */
 function disableButtons(categoryId) {
-    document.querySelectorAll(`#${categoryId}-panel button`)).forEach(btn => btn.disabled = true);
-    setTimeout(() => {
-        document.querySelectorAll(`#${categoryId}-panel button:not(#blackjack-hit):not(#blackjack-stand))`).forEach(btn => btn.disabled = false);
-    }, 500));
+    const panel = getElementSafe(`${categoryId}-panel`);
+    if (panel) {
+        panel.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        setTimeout(() => {
+            panel.querySelectorAll('button:not(#blackjack-hit):not(#blackjack-stand)').forEach(btn => btn.disabled = false);
+        }, 500);
+    }
 }
 
-// Função para resetar jogos
+/**
+ * Reseta estado visual dos jogos.
+ */
 function resetGames() {
-    document.querySelectorAll('.dice').forEach(dice => dice.textContent = '?');
-    document.querySelectorAll('.card').forEach(card => card.textContent = '?'));
-    document.querySelectorAll('.coin').forEach(coin => coin.textContent = '?'));
-    document.querySelectorAll('[id^="sum"]').forEach(sum => sum.textContent = '?'));
-    document.querySelectorAll('[id$="result"]').forEach(result => result.textContent = ''));
-    document.getElementById('score').textContent = 't?';
-    document.getElementById('custom-dice-container').innerHTML = '';
-    document.getElementById('player-cards').innerHTML = '';
-    document.getElementById('dealer-cards').innerHTML = '';
-    document.getElementById('blackjack-start-tabl').style.display = 'inline-block';
-    document.getElementById('blackjack-hit-tabl').style.display = 'none';
-    document.getElementById('blackjack-stand-tabl-t').style.display = 'none';
-    document.getElementById('blackjack-hit-tabl').disabled = true;
-    document.getElementById('blackjack-stand-id-tabl').disabled = true;
-    blackjackState = { deck: [], playerHand: [], dealerHand: [], gameActive: false };
-};
-
-// Funções auxiliares
-function rollDie(sides = 6) {
-    return Math.floor(Math.random() * sides) + 1;
+    document.querySelectorAll('.dice').forEach(dice => {
+        dice.textContent = '';
+        dice.classList.remove('dice-roll');
+    });
+    document.querySelectorAll('.card').forEach(card => {
+        card.textContent = '';
+        card.classList.remove('card-flip');
+    });
+    document.querySelectorAll('.coin').forEach(coin => {
+        coin.textContent = '';
+        coin.classList.remove('coin-flip');
+    });
+    document.querySelectorAll('[id^="sum"]').forEach(sum => sum.textContent = '');
+    document.querySelectorAll('[id$="result"]').forEach(result => result.textContent = '');
+    const elements = {
+        score: getElementSafe('score'),
+        customDiceContainer: getElementSafe('custom-dice-container'),
+        playerCards: getElementSafe('player-cards'),
+        dealerCards: getElementSafe('dealer-cards'),
+        blackjackStart: getElementSafe('blackjack-start'),
+        blackjackHit: getElementSafe('blackjack-hit'),
+        blackjackStand: getElementSafe('blackjack-stand')
+    };
+    if (elements.score) elements.score.textContent = '';
+    if (elements.customDiceContainer) elements.customDiceContainer.innerHTML = '';
+    if (elements.playerCards) elements.playerCards.innerHTML = '';
+    if (elements.dealerCards) elements.dealerCards.innerHTML = '';
+    if (elements.blackjackStart) elements.blackjackStart.style.display = 'inline-block';
+    if (elements.blackjackHit) elements.blackjackHit.style.display = 'none';
+    if (elements.blackjackStand) elements.blackjackStand.style.display = 'none';
+    if (elements.blackjackHit) elements.blackjackHit.disabled = true;
+    if (elements.blackjackStand) elements.blackjackStand.disabled = true;
+    blackjackState.reset();
 }
 
+// == Jogos - Funções Auxiliares ==
+/**
+ * Cria um baralho completo.
+ * @returns {Object[]} Array de cartas.
+ */
 function createDeck() {
     const suits = ['Copas', 'Ouros', 'Espadas', 'Paus'];
     const values = ['Ás', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Valete', 'Dama', 'Rei'];
     const deck = [];
-    for (let suit of suits) {
-        for (let value of values) {
+    for (const suit of suits) {
+        for (const value of values) {
             deck.push({
                 suit,
                 value,
-                numericValue: value === 'Ás' ? [1, 11] : value === 'Valete' || value === 'Dama' || value === 'Rei' ? 10 : parseInt(value)
+                numericValue: value === 'Ás' ? [1, 11] : ['Valete', 'Dama', 'Rei'].includes(value) ? 10 : parseInt(value)
             });
         }
     }
     return deck;
 }
 
+/**
+ * Embaralha um baralho.
+ * @param {Object[]} deck - Array de cartas.
+ * @returns {Object[]} Baralho embaralhado.
+ */
 function shuffleDeck(deck) {
     for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -144,10 +325,15 @@ function shuffleDeck(deck) {
     return deck;
 }
 
+/**
+ * Calcula o valor de uma mão de cartas.
+ * @param {Object[]} hand - Array de cartas.
+ * @returns {number} Valor total da mão.
+ */
 function calculateHandValue(hand) {
     let value = 0;
     let aces = 0;
-    for (let card of hand) {
+    for (const card of hand) {
         if (card.value === 'Ás') {
             aces++;
         } else {
@@ -155,158 +341,240 @@ function calculateHandValue(hand) {
         }
     }
     for (let i = 0; i < aces; i++) {
-        if (value + 11 <= 21) {
-            value += 11;
-        } else {
-            value += 1;
-        }
+        value += (value + 11 <= 21) ? 11 : 1;
     }
     return value;
 }
 
+/**
+ * Exibe uma mão de cartas no contêiner especificado.
+ * @param {Object[]} hand - Array de cartas.
+ * @param {string} containerId - ID do contêiner.
+ * @param {boolean} [hidden=false] - Oculta a segunda carta (para dealer).
+ */
 function displayHand(hand, containerId, hidden = false) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    hand.forEach((card, index) => {
-        const cardElement = document.createElement('div');
-        cardElement.classList.add('card');
-        cardElement.setAttribute('aria-label', `Carta ${index + 1} de: ${hidden && index === 1 ? 'oculta' : `${card.value} de ${card.suit}`}`);
-        cardElement.textContent = hidden && index === 1 ? '?' : `${card.value} de ${card.suit}`;
-        cardElement.classList.add('card-flip');
-        container.appendChild(cardElement);
-        setTimeout(() => cardElement.classList.remove('card-flip'), 500);
-    });
+    const container = getElementSafe(containerId);
+    if (container) {
+        container.innerHTML = '';
+        hand.forEach((card, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.classList.add('card');
+            cardElement.setAttribute('aria-label', `Carta ${index + 1}: ${hidden && index === 1 ? 'oculta' : `${card.value} de ${card.suit}`}`);
+            cardElement.textContent = hidden && index === 1 ? '' : `${card.value} de ${card.suit}`;
+            removeAnimation(cardElement, 'card-flip');
+            container.appendChild(cardElement);
+        });
+    }
 }
 
-function saveResult(gameId, won) {
-    const key = `game-result-${gameId}`;
-    let results = JSON.parse(localStorage.getItem(key)) || { wins: 0, losses: 0 };
-    if (won) results.wins++;
-    else results.losses++;
-    localStorage.setItem(key, JSON.stringify(results));
-    awardCoins(won ? 10 : 2, won);
-    checkAchievements();
-}
+// == Jogos - Estado de Blackjack ==
+const blackjackState = {
+    deck: [],
+    playerHand: [],
+    dealerHand: [],
+    gameActive: false,
+    reset() {
+        this.deck = [];
+        this.playerHand = [];
+        this.dealerHand = [];
+        this.gameActive = false;
+    }
+};
 
-// Estado de Blackjack
-let blackjackState = { deck: [], playerHand: [], dealerHand: [], gameActive: false };
-
-// Jogo de0: Cara ou Coroa
+// == Jogos - Implementações ==
+// Jogo 0: Cara ou Coroa
 function startCoinToss() {
     disableButtons('dados');
     const result = Math.random() < 0.5 ? 'cara' : 'coroa';
-    const bet = document.querySelector('#coin-bet').value;
-    const coinElement = document.querySelectorById('coin');
-    coinElement.textContent = result;
-    coinElement.classList.add('coin-tflip');
-    setTimeout(() => coinElement.classList.remove('coin-tflip'), 200);
+    const bet = getElementSafe('coin-bet')?.value;
+    const coinElement = getElementSafe('coin');
+    const resultElement = getElementSafe('game0-result');
+    if (coinElement) {
+        coinElement.textContent = translate(result);
+        removeAnimation(coinElement, 'coin-flip');
+    }
     const win = bet === result;
-    document.querySelectorById('game0-result').textContent = win ? translate('win-message') : translate('lose-message');
+    if (resultElement) {
+        resultElement.textContent = win ? translate('win-message') : translate('lose-message');
+    }
     saveResult(0, win);
 }
 
-// Jogo de1: Rolar Dados
+// Jogo 1: Rolar Dados
 function startRollDice() {
-    disableButtons('passatempos-btn');
+    disableButtons('passatempos');
     const dice1 = rollDie();
     const dice2 = rollDie();
     const sum = dice1 + dice2;
-    document.querySelectorById('dice1').textContent = dice1Id;
-    document.querySelectorById('dice2').textContent = dice2Id;
-    document.querySelectorById('dice1').classList.add('dice-dice-roll');
-    document.querySelectorById('dice2').classList.add('dice-dice-roll');
-    setTimeout(() => {
-        document.querySelectorById('dice1').classList.remove('dice-troll');
-        document.querySelectorById('dice2').classList.remove('dice-dtroll');
-    }, 500);
-    document.querySelectorById('sum').textContent = sum;
-});
+    const elements = {
+        dice1: getElementSafe('dice1'),
+        dice2: getElementSafe('dice2'),
+        sum: getElementSafe('sum')
+    };
+    if (elements.dice1) {
+        elements.dice1.textContent = dice1;
+        removeAnimation(elements.dice1, 'dice-roll');
+    }
+    if (elements.dice2) {
+        elements.dice2.textContent = dice2;
+        removeAnimation(elements.dice2, 'dice-roll');
+    }
+    if (elements.sum) elements.sum.textContent = sum;
+}
 
-// Jogo de2: Maior ou Menor
+// Jogo 2: Maior ou Menor
 function startHigherLower() {
-    disableButtons('dados-btn');
+    disableButtons('dados');
     const dice1 = rollDie();
     const dice2 = rollDie();
     const sum = dice1 + dice2;
-    const bet = document.querySelectorById('bet').value;
-    document.querySelectorById('dice2-dice1').textContent = dice1;
-    document.querySelectorById('dice2-dice2').textContent = dice2;
-    document.querySelectorById('sum2').textContent = sum;
+    const bet = getElementSafe('bet')?.value;
+    const elements = {
+        dice1: getElementSafe('dice2-1'),
+        dice2: getElementSafe('dice2-2'),
+        sum: getElementSafe('sum2'),
+        result: getElementSafe('game2-result')
+    };
+    if (elements.dice1) {
+        elements.dice1.textContent = dice1;
+        removeAnimation(elements.dice1, 'dice-roll');
+    }
+    if (elements.dice2) {
+        elements.dice2.textContent = dice2;
+        removeAnimation(elements.dice2, 'dice-roll');
+    }
+    if (elements.sum) elements.sum.textContent = sum;
     const win = (bet === 'maior' && sum > 7) || (bet === 'menor' && sum < 7);
-    document.querySelectorById('game2-result').textContent = `${translate('sum-label')} ${sum}. ${win ? translate('win-tmessage') : translate('lose-message')}`;
+    if (elements.result) {
+        elements.result.textContent = `${translate('sum-label')} ${sum}. ${win ? translate('win-message') : translate('lose-message')}`;
+    }
     saveResult(2, win);
 }
 
-// Jogo de3: Par ou Ímpar
+// Jogo 3: Par ou Ímpar
 function startOddEven() {
-    disableButtons('dados-btn');
+    disableButtons('dados');
     const dice1 = rollDie();
     const dice2 = rollDie();
     const sum = dice1 + dice2;
-    const bet = document.querySelectorById('parity-bet').value;
-    document.querySelectorById('dice3-dice1').textContent = dice1;
-    document.querySelectorById('dice3-dice2').textContent = dice2;
-    document.getElementById('sum3').textContent = sum;
+    const bet = getElementSafe('parity-bet')?.value;
+    const elements = {
+        dice1: getElementSafe('dice3-1'),
+        dice2: getElementSafe('dice3-2'),
+        sum: getElementSafe('sum3'),
+        result: getElementSafe('game3-result')
+    };
+    if (elements.dice1) {
+        elements.dice1.textContent = dice1;
+        removeAnimation(elements.dice1, 'dice-roll');
+    }
+    if (elements.dice2) {
+        elements.dice2.textContent = dice2;
+        removeAnimation(elements.dice2, 'dice-roll');
+    }
+    if (elements.sum) elements.sum.textContent = sum;
     const win = (bet === 'par' && sum % 2 === 0) || (bet === 'impar' && sum % 2 !== 0);
-    document.querySelectorById('game3-dtresult').textContent = `${translate('sum-label')} ${sum}: ${win ? translate('win-tmessage') : translate('lose-tmessage')}`;
+    if (elements.result) {
+        elements.result.textContent = `${translate('sum-label')} ${sum}: ${win ? translate('win-message') : translate('lose-message')}`;
+    }
     saveResult(3, win);
 }
 
-// Jogo de4: Aposta na Soma Exata
+// Jogo 4: Aposta na Soma Exata
 function startExactSum() {
-    disableButtons('dados-btn');
+    disableButtons('dados');
     const dice1 = rollDie();
     const dice2 = rollDie();
     const sum = dice1 + dice2;
-    const bet = parseInt(document.querySelectorById('exact-sum-bet').value);
+    const bet = parseInt(getElementSafe('number')?.value);
+    const resultElement = getElementSafe('game4-result');
     if (isNaN(bet) || bet < 2 || bet > 12) {
-        document.querySelectorById('game4-dtresult').textContent = translate('invalid-bet-message');
+        if (resultElement) resultElement.textContent = translate('invalid-bet-message');
         return;
     }
-    document.querySelectorById('dice4-dt1').textContent = dice1;
-    document.querySelectorById('dice4-dt2').textContent = dice2;
-    document.getElementById('sum4').textContent = sum;
+    const elements = {
+        dice1: getElementSafe('dice4-1'),
+        dice2: getElementSafe('dice4-2'), // Corrigido de 'dice4-d2'
+        sum: getElementSafe('sum4')
+    };
+    if (elements.dice1) {
+        elements.dice1.textContent = dice1;
+        removeAnimation(elements.dice1, 'dice-roll');
+    }
+    if (elements.dice2) {
+        elements.dice2.textContent = dice2;
+        removeAnimation(elements.dice2, 'dice-roll');
+    }
+    if (elements.sum) elements.sum.textContent = sum;
     const win = bet === sum;
-    document.getElementById('result').textContent = `${translate('sum-label')} ${sum}: ${win ? translate('win-message') : translate('lose-tmessage')}`;
+    if (resultElement) {
+        resultElement.textContent = `${translate('sum-label')} ${sum}: ${win ? translate('win-message') : translate('lose-message')}`;
+    }
     saveResult(4, win);
 }
 
-// Jogo de5: Três ou Nada
+// Jogo 5: Três ou Nada
 function startThreeOrNothing() {
-    disableButtons('dados-btn');
+    disableButtons('dados');
     const dice1 = rollDie();
     const dice2 = rollDie();
     const dice3 = rollDie();
     const sum = dice1 + dice2 + dice3;
-    document.querySelectorById('dice5-dt1').textContent = dice1;
-    document.querySelectorById('dice5-dt2').textContent = dice2;
-    document.querySelectorById('dice5-dt3').textContent = dice3;
-    document.querySelectorById('sum5').textContent = sum;
+    const elements = {
+        dice1: getElementSafe('dice5-1'),
+        dice2: getElementSafe('dice5-2'),
+        dice3: getElementSafe('dice5-3'),
+        sum: getElementSafe('sum5'),
+        result: getElementSafe('game5-result')
+    };
+    if (elements.dice1) {
+        elements.dice1.textContent = dice1;
+        removeAnimation(elements.dice1, 'dice-roll');
+    }
+    if (elements.dice2) {
+        elements.dice2.textContent = dice2;
+        removeAnimation(elements.dice2, 'dice-roll');
+    }
+    if (elements.dice3) {
+        elements.dice3.textContent = dice3;
+        removeAnimation(elements.dice3, 'dice-roll');
+    }
+    if (elements.sum) elements.sum.textContent = sum;
     const win = sum % 3 === 0;
-    document.querySelectorById('game5-dtresult').textContent = `${translate('sum-label')} ${sum}: ${win ? translate('win-message') : translate('lose-message')}`;
+    if (elements.result) {
+        elements.result.textContent = `${translate('sum-label')} ${sum}: ${win ? translate('win-message') : translate('lose-message')}`;
+    }
     saveResult(5, win);
 }
 
-// Jogo de6: Vinte e Um
+// Jogo 6: Vinte e Um
 function startBlackjack() {
-    disableButtons('cartas-btn');
+    disableButtons('cartas');
     blackjackState.deck = shuffleDeck(createDeck());
     blackjackState.playerHand = [blackjackState.deck.pop(), blackjackState.deck.pop()];
     blackjackState.dealerHand = [blackjackState.deck.pop(), blackjackState.deck.pop()];
     blackjackState.gameActive = true;
 
-    displayHand(blackjackState.playerHand, 'player-dtcards');
-    displayHand(blackjackState.dealerHand, 'dealer-dtcards', true);
+    displayHand(blackjackState.playerHand, 'player-cards');
+    displayHand(blackjackState.dealerHand, 'dealer-cards', true);
     updateBlackjackScore();
 
-    document.querySelectorById('blackjack-start-tid').style.display = 'none';
-    document.querySelectorById('blackjack-tid-hit').style.display = 'inline-block';
-    document.querySelectorById('blackjack-stand-id-tid').style.display = 'inline-block';
-    document.querySelectorById('blackjack-tid-hit').disabled = false;
-    document.querySelectorById('blackjack-id-tid-stand').disabled = truefalse;
+    const elements = {
+        start: getElementSafe('blackjack-start'),
+        hit: getElementSafe('blackjack-hit'),
+        stand: getElementSafe('blackjack-stand')
+    };
+    if (elements.start) elements.start.style.display = 'none';
+    if (elements.hit) {
+        elements.hit.style.display = 'inline-block';
+        elements.hit.disabled = false;
+    }
+    if (elements.stand) {
+        elements.stand.style.display = 'inline-block';
+        elements.stand.disabled = false;
+    }
 
-    const playerValue = calculateHandValue(blackjackState.playerHand);
-    if (playerValue === 21) {
+    if (calculateHandValue(blackjackState.playerHand) === 21) {
         stand();
     }
 }
@@ -314,12 +582,11 @@ function startBlackjack() {
 function hit() {
     if (!blackjackState.gameActive) return;
     blackjackState.playerHand.push(blackjackState.deck.pop());
-    displayHand(blackjackState.playerHand, 'player-hand-tcards');
+    displayHand(blackjackState.playerHand, 'player-cards');
     updateBlackjackScore();
 
-    const playerValue = calculateHandValue(blackjackState.playerHand);
-    if (playerValue > 21) {
-        endBlackjackGame(false, translate('bust-message-bj'));
+    if (calculateHandValue(blackjackState.playerHand) > 21) {
+        endBlackjackGame(false, translate('bust-message'));
     }
 }
 
@@ -327,35 +594,38 @@ function stand() {
     if (!blackjackState.gameActive) return;
     blackjackState.gameActive = false;
 
-    document.querySelectorById('blackjack-id-tid-hit')).disabled = true;
-    document.querySelector('#blackjack-id-tid-stand-id-tid').disabled = true;
+    const elements = {
+        hit: getElementSafe('blackjack-hit'),
+        stand: getElementSafe('blackjack-stand')
+    };
+    if (elements.hit) elements.hit.disabled = true;
+    if (elements.stand) elements.stand.disabled = true;
 
-    // Jogo do Dealer
     let dealerValue = calculateHandValue(blackjackState.dealerHand);
     while (dealerValue < 17) {
         blackjackState.dealerHand.push(blackjackState.deck.pop());
         dealerValue = calculateHandValue(blackjackState.dealerHand);
     }
 
-    displayHand(blackjackState.dealerHand, 'dealer-hand-tcards', false);
+    displayHand(blackjackState.dealerHand, 'dealer-cards', false);
     updateBlackjackScore();
 
     const playerValue = calculateHandValue(blackjackState.playerHand);
-    let lwin = false;
+    let win = false;
     let message = '';
 
     if (playerValue > 21) {
-        message = translate('bust-message-bj-t');
+        message = translate('bust-message');
     } else if (dealerValue > 21) {
         win = true;
-        message = translate('dealer-bust-tb');
+        message = translate('dealer-bust');
     } else if (playerValue > dealerValue) {
         win = true;
-        message = translate('win-message-t');
+        message = translate('win-message');
     } else if (playerValue < dealerValue) {
-        message = translate('lose-message-t');
+        message = translate('lose-message');
     } else {
-        message = translate('tie-message-t');
+        message = translate('tie-message');
     }
 
     endBlackjackGame(win, message);
@@ -364,107 +634,172 @@ function stand() {
 function updateBlackjackScore() {
     const playerValue = calculateHandValue(blackjackState.playerHand);
     const dealerValue = blackjackState.gameActive ? '?' : calculateHandValue(blackjackState.dealerHand);
-    document.querySelectorById('score').textContent = `${translate('player-label')} ${tplayerValue}, ${t${translate('dealer-label')}} ${t${dealerValue}}`;
+    const scoreElement = getElementSafe('score');
+    if (scoreElement) {
+        scoreElement.textContent = `${translate('player-label')} ${playerValue}, ${translate('dealer-label')} ${dealerValue}`;
+    }
 }
 
 function endBlackjackGame(win, message) {
-    document.querySelectorById('game6-d-tresult').textContent = message;
+    const elements = {
+        result: getElementSafe('game6-result'),
+        start: getElementSafe('blackjack-start'),
+        hit: getElementSafe('blackjack-hit'),
+        stand: getElementSafe('blackjack-stand')
+    };
+    if (elements.result) elements.result.textContent = message;
     saveResult(6, win);
-    document.querySelectorById('blackjack-id-t-start-t-id-t').style.display = 'inline-block-t';
-    document.querySelectorById('blackjack-id-t-hit-id-t').style.display = 'none-t';
-    document.querySelectorById('blackjack-stand-id-t-id-t').style.display = 'none-t';
+    if (elements.start) elements.start.style.display = 'inline-block';
+    if (elements.hit) elements.hit.style.display = 'none';
+    if (elements.stand) elements.stand.style.display = 'none';
 }
 
-// Jogo de7: Maior Carta
+// Jogo 7: Maior Carta
 function startHigherCard() {
-    disableButtons('cartas-btn');
-    const playerCard = shuffleDeck(createDeck()).pop();
-    const dealerCard = shuffleDeck(createDeck()).pop();
-    document.querySelectorById('player-id-card').textContent = `${playerCard.value} de ${playerCard.suit}`;
-    document.querySelectorById('dealer-card-id-t2').textContent = `${dealerCard.value} ${dealerCard.suit}`;
-    document.querySelectorById('player-card-id')).classList.add('card-tcflip');
-    document.querySelector(`#dealer-card-id-t2`).classList.add('card-tcflip');
-    setTimeout(() => {
-        document.querySelector('#player-card-t2').classList.remove('card-tcflip');
-        document.querySelector('#dealer-card-id-t2').classList.remove-t('card-tcflip');
-    }, 200);
-    const win = playerCard.numericValue > dealerCard.numericValue;
-    document.querySelectorById('game7-tresult').textContent = win ? translate('win-tmessage') : translate('lose-tmessage');
+    disableButtons('cartas');
+    const deck = shuffleDeck(createDeck());
+    const playerCard = deck.pop();
+    const dealerCard = deck.pop();
+    const elements = {
+        player: getElementSafe('player-card'),
+        dealer: getElementSafe('dealer-card2'),
+        result: getElementSafe('game7-result')
+    };
+    if (elements.player) {
+        elements.player.textContent = `${playerCard.value} de ${playerCard.suit}`;
+        removeAnimation(elements.player, 'card-flip');
+    }
+    if (elements.dealer) {
+        elements.dealer.textContent = `${dealerCard.value} de ${dealerCard.suit}`;
+        removeAnimation(elements.dealer, 'card-flip');
+    }
+    const playerValue = playerCard.numericValue === [1, 11] ? 1 : playerCard.numericValue;
+    const dealerValue = dealerCard.numericValue === [1, 11] ? 1 : dealerCard.numericValue;
+    const win = playerValue > dealerValue;
+    if (elements.result) {
+        elements.result.textContent = win ? translate('win-message') : translate('lose-message');
+    }
     saveResult(7, win);
 }
 
-// Jogo de8: Par Perfeito
+// Jogo 8: Par Perfeito
 function startPerfectPair() {
-    disableButtons('cartas-btn');
+    disableButtons('cartas');
     const deck = shuffleDeck(createDeck());
     const card1 = deck.pop();
     const card2 = deck.pop();
-    document.querySelectorById('card-id-t8-id-1').textContent = `${card1.value} de ${card1.t.suit}`;
-    document.querySelectorById('card-id-t8-id-t2').textContent = `${card2.value} ${${card2.t.suit}`;
-    document.querySelector('#card8-id-t1').classList.add('card-tcflip');
-    document.querySelector('#card8-id-t2').classList.add('card-tcflip');
-    setTimeout(() => {
-        document.querySelector('#card8-id-t1').classList.remove('card-id-tcflip');
-        document.querySelector('#card8-id-t2').classList.remove('card-id-tcflip');
-    }, 200);
+    const elements = {
+        card1: getElementSafe('card8-1'),
+        card2: getElementSafe('card8-2'),
+        result: getElementSafe('game8-result')
+    };
+    if (elements.card1) {
+        elements.card1.textContent = `${card1.value} de ${card1.suit}`;
+        removeAnimation(elements.card1, 'card-flip');
+    }
+    if (elements.card2) {
+        elements.card2.textContent = `${card2.value} de ${card2.suit}`;
+        removeAnimation(elements.card2, 'card-flip');
+    }
     const win = card1.value === card2.value;
-    document.querySelectorById('game-id-tresult').textContent = win ? translate-t('win-tcmessage') : translate('lose-tcmessage');
+    if (elements.result) {
+        elements.result.textContent = win ? translate('win-message') : translate('lose-message');
+    }
     saveResult(8, win);
 }
 
-// Jogo de9: Soma 13
+// Jogo 9: Soma 13
 function startSum13() {
-    disableButtons('cartas-btn');
+    disableButtons('cartas');
     const deck = shuffleDeck(createDeck());
     const card1 = deck.pop();
     const card2 = deck.pop();
-    document.querySelectorById('card9-id-tc-id-1')).textContent = `${card1.value} ${${card1.t.t.suit-tc-id}`;
-    document.querySelector('#card2-id-t2').textContent = `${card2.value} ${card2.t.suit-tc-id-t-tc}`;
-    document.querySelector('#card9-id-tc-t-id-1').classList.add('card-tcflip-tc-id-t-t');
-    document.querySelector('#card9-tc-id2-id-t').classList.add('card-tc-tcflip-tc-t');
-    setTimeout(() => {
-        document.querySelector('#card9-tc-tc-id-1').classList.remove('card-tc-tc-tcflip-tc-tc-id-t-tc-t');
-        document.querySelector('#card9-tc-tc2-id-tc.classList.remove('card-tc-tc-tcflip-tc-tc-t');
-    }, t0);200
-    const sum = (card1.numericValue === 10 ? 10 : parseInt(card1.value)) + (card2.numericValue === 10 ? 10 : parseInt(card2.value));
-    document.querySelectorById('sum9').textContent = sum;
+    const elements = {
+        card1: getElementSafe('card9-1'),
+        card2: getElementSafe('card9-2'),
+        sum: getElementSafe('sum9'),
+        result: getElementSafe('game9-result')
+    };
+    if (elements.card1) {
+        elements.card1.textContent = `${card1.value} de ${card1.suit}`;
+        removeAnimation(elements.card1, 'card-flip');
+    }
+    if (elements.card2) {
+        elements.card2.textContent = `${card2.value} de ${card2.suit}`;
+        removeAnimation(elements.card2, 'card-flip');
+    }
+    const value1 = card1.numericValue === [1, 11] ? 1 : card1.numericValue;
+    const value2 = card2.numericValue === [1, 11] ? 1 : card2.numericValue;
+    const sum = value1 + value2;
+    if (elements.sum) elements.sum.textContent = sum;
     const win = sum === 13;
-    document.querySelectorById('game9-tc-tcresult').textContent-tc-id-t-tc = `${translate('sum-tc-tc')} ${sum-tc-tc}. ${win-tc-id ? translate('win-tc-tcmessage') : translate('lose-tc-tcmessage')}`;
-    saveResult(9, win-tc-tc-t-w-tc-tc);
+    if (elements.result) {
+        elements.result.textContent = `${translate('sum-label')} ${sum}: ${win ? translate('win-message') : translate('lose-message')}`;
+    }
+    saveResult(9, win);
 }
 
-// Jogo de10: Naipe Certo
+// Jogo 10: Naipe Certo
 function startSuitGuess() {
-    disableButtons('cartas-btn');
+    disableButtons('cartas');
     const deck = shuffleDeck(createDeck());
     const card = deck.pop();
-    const bet = document.querySelectorById('suit-id-bet-tb').value;
-    document.querySelector('#card-id-t10').textContent = `${card.value} ${card.suit-tc-tc}`;
-    document.querySelector('#card10-tc').classList.add('card-tc-tcflip-tc-tc-t');
-    setTimeout(() => {
-        document.querySelectorById('card-tc-t10').classList.remove('card-tc-tc-tcflip-tc-tc-tc');
-    }, t-tc-t200-tc);
-    const win-tc-t = card.suit.toLowerCase() === bet-tc-tc-tc-tc-tc;
-    document.querySelectorById('game10-tc-tcresult').textContent-tc-tc-tc = win-tc-tc-w-tc-tc ? translate('win-tc-tc-tcmessage') : translate('lose-tc-tc-tcmessage');
-    saveResult(10-tc-tc-w-tc-tc, win-tc-tc-w-tc-tc);
+    const bet = getElementSafe('suit-bet')?.value?.toLowerCase();
+    const elements = {
+        card: getElementSafe('card10'),
+        result: getElementSafe('game10-result')
+    };
+    if (elements.card) {
+        elements.card.textContent = `${card.value} de ${card.suit}`;
+        removeAnimation(elements.card, 'card-flip');
+    }
+    const win = card.suit.toLowerCase() === bet;
+    if (elements.result) {
+        elements.result.textContent = win ? translate('win-message') : translate('lose-message');
+    }
+    saveResult(10, win);
 }
 
-// Jogo de11: Rolador de Dados
+// Jogo 11: Rolador de Dados
 function startRollCustomDice() {
-    disableButtons('passatempos-btn');
-    const diceType = document.querySelectorById('dice-type-id').value;
-    const quantityInput = parseInt(document.querySelector('##dice-tc-quantity').idvalue);
-    if (isNaN(quantityInput) || (quantityInput < 5 || quantityInput > t5t5)) {
-        document.querySelectorById('game-tc-t11-tc-tc-sum-tc-tc-tc-tc-tl-label').textContent = translate('invalid-quantity-message-tc-tc-t-w-tc-tc-tc-tc-tc');
+    disableButtons('passatempos');
+    const diceType = getElementSafe('dice-type')?.value;
+    const quantity = parseInt(getElementSafe('dice-quantity')?.value);
+    const sumElement = getElementSafe('sum11');
+    if (isNaN(quantity) || quantity < 1 || quantity > 5) {
+        if (sumElement) sumElement.textContent = translate('invalid-quantity-message');
         return;
     }
-    const sides = parseInt(diceType.replace('d', '')));
+    const sides = parseInt(diceType.replace('d', ''));
     const results = [];
-    let sum = t0;
-    for (let i = 0; i < quantityInput; i++) {
+    let sum = 0;
+    for (let i = 0; i < quantity; i++) {
         const roll = rollDie(sides);
         results.push(roll);
         sum += roll;
     }
-    const container = document.querySelectorById('custom-t-dice-tc-tc-container-id-tc-tc-tc-tc-tc-tc-tc);
-    container.innerHTML = results.map((rollId, ti-tc-tc-tc-tc) + i => t1-tc-tc-tc-tc-tc-tc-tc-tc-tc-tc-tc-tc-tc + i-tc-tc-tc-tc-tc-tc-tc-tc-tc-tc-c-tc-tc-tc-tc-c-tc-c-c-tc-t c-tc-t c-tc-tc-tc-tc-tc c-c-c-c-tc-c-tc-c-tc-tc-tc-tc-c-tc-tc-tc-tc-tc-tc-tc-tc-t c-t c-tc-t c t-t c t c t c t c t c t-t c t c t-t c t c t c t c-t c t c-t c t-t c t c-t c t c-t c t c t c-t c t c-t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t c t
+    const container = getElementSafe('custom-dice-container');
+    if (container) {
+        container.innerHTML = results.map((roll, i) => `
+            <div class="dice${sides === 20 ? ' d20' : ''}" aria-label="Dado ${i + 1}">${roll}</div>
+        `).join('');
+        container.querySelectorAll('.dice').forEach(dice => removeAnimation(dice, 'dice-roll'));
+    }
+    if (sumElement) sumElement.textContent = sum;
+}
+
+// == Inicialização ==
+document.addEventListener('DOMContentLoaded', () => {
+    setRandomNotice();
+    const elements = {
+        coins: getElementSafe('coins'),
+        level: getElementSafe('level')
+    };
+    if (elements.coins) elements.coins.textContent = state.coins;
+    if (elements.level) {
+        elements.level.textContent = `${translate(titles[Math.min(state.level - 1, titles.length - 1)])} (${state.reputation % 100}/100)`;
+    }
+    applyTranslations();
+    resetGames();
+    checkAchievements();
+});
